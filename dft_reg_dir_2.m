@@ -70,11 +70,16 @@ else
     im_tg = targetImage;
 end
 
-if matlabpool('size') == 0
-    matlabpool open 8
+pool = gcp;
+if ~pool.Connected
+    parpool;
 end
 
-for i = 1:length(datafiles)
+% if matlabpool('size') == 0
+%     matlabpool open 8
+% end
+
+parfor i = 1:length(datafiles)
 %   for i = 1:length(datafiles)
     %%
     %%%% Determine source file names and output file names and directory
@@ -82,13 +87,14 @@ for i = 1:length(datafiles)
     a =  datafiles(i).name;
     % Check whether the file name fits the trial data file
     % "main_fname_000.tif"
-    if ~strcmp(main_fname, '*')
-        if length(a) == length(main_fname) + 7
-            fname = [src_dir filesep a];
-        end
-    else
-        fname = [src_dir filesep a];
-    end
+%     if ~strcmp(main_fname, '*')
+%         if length(a) == length(main_fname) + 7
+%             fname = [src_dir filesep a];
+%         end
+%     else
+%         fname = [src_dir filesep a];
+%     end
+    fname = [src_dir filesep a];
     file_basename = a(1: end-7);
     
     im_info = imfinfo(fname);
@@ -113,7 +119,10 @@ for i = 1:length(datafiles)
     save_name = [save_path filesep  file_basename 'dftReg_' fname(end-6:end-4) '.tif'];
     
 %%%%% READ SOURCE IMAGE DATA. With the option of offset data to mode.
-    [im_s, header] = load_scim_data(fname, [], 1);
+%     [im_s, header] = load_scim_data(fname, [], 1);
+
+%%%%% READ SOURCE IMAGE DATA. WITHOUT offseting data to mode.
+    [im_s, header] = load_scim_data(fname);
     imTagStruct = get_tiff_tag_to_struct(fname);
     
 %     % SI4 data contains negative values. So offset to mode first, then remove the rest of negative values, 
@@ -140,4 +149,3 @@ end
 
 
 % save([save_path 'im_dft_reg_results'], 'im_dft_reg_results','-v7.3');
-
